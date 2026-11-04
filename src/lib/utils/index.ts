@@ -2,7 +2,7 @@
  * Formats a numeric value into standard Indian Rupee (INR) currency representation.
  * Example: 123456.78 -> "₹ 1,23,456.78"
  */
-export function formatCurrency(amount: number | null | undefined): string {
+export function formatCurrency(amount: number | string | null | undefined): string {
   const num = amount === null || amount === undefined || isNaN(Number(amount)) ? 0 : Number(amount);
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',

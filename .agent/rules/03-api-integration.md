@@ -9,8 +9,8 @@
 The centralized Axios client enforces:
 1. **Base Configuration**:
    - `baseURL`: Loaded strictly from `NEXT_PUBLIC_API_URL` via `@/config/env`.
-   - `timeout`: 15,000ms.
-   - `withCredentials`: true (to support cookie-based sessions if configured).
+   - `timeout`: 20,000ms.
+   - `withCredentials`: omitted/false (authentication is Bearer token-based in headers, avoiding W3C CORS wildcard origin conflicts).
 2. **Request Interceptor**:
    - Injects `Authorization: Bearer <token>` when an access token exists in memory/session.
    - Attaches `Content-Type: application/json` unless payload is `FormData`.

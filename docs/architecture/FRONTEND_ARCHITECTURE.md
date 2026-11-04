@@ -109,7 +109,7 @@ vyavsa_frontend/
 - **Tenant & Platform Portals (`(tenant)` and `(platform)` routes)**: Server Component layout shells that deliver the responsive navigation drawer, header, and skeleton loaders. Inner dashboards and operational tables use Client Components backed by TanStack Query for dynamic mutations, caching, and background synchronization.
 
 ### 4.2 Data Fetching & Caching Architecture
-1. **Axios Central Instance**: Configured with `baseURL: process.env.NEXT_PUBLIC_API_URL` and `withCredentials: true`.
+1. **Axios Central Instance**: Configured with `baseURL: process.env.NEXT_PUBLIC_API_URL` without `withCredentials` (Bearer token auth via `Authorization` header to remain compliant with standard CORS configurations).
 2. **Request Interceptor**: Synchronously extracts the valid access token and injects `Authorization: Bearer <token>`.
 3. **Response Interceptor**: Intercepts HTTP 401 Unauthorized responses. If an access token expired, it transparently triggers a refresh request via `POST /api/v1/auth/refresh`, updates the stored token, and retries the original request.
 4. **Single-Flight Refresh Guard**: Uses an in-flight promise queue to ensure that 10 simultaneous 401s generate only **one** backend refresh call, preventing race conditions.

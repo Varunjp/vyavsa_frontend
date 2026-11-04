@@ -46,7 +46,7 @@ export const API_ENDPOINTS = {
   // Public Catalog
   PLANS: '/plans',
 
-  // Tenant Operations
+  // Tenant Operations & Profile
   TENANT_PROFILE: '/tenant/profile',
   TENANT_SETTINGS: '/tenant/settings',
   TENANT_LOGO: '/tenant/logo',
@@ -54,43 +54,58 @@ export const API_ENDPOINTS = {
   TENANT_SUBSCRIPTION_PLANS: '/tenant/subscription/plans',
   TENANT_CHECKOUT: '/tenant/subscription/checkout',
   TENANT_VERIFY_PAYMENT: '/tenant/subscription/verify',
+  TENANT_PURCHASE_PLAN: '/tenant/subscription/purchase',
   TENANT_CANCEL_SUBSCRIPTION: '/tenant/subscription/cancel',
   TENANT_TRANSACTIONS: '/tenant/transactions',
+  TENANT_USERS: '/tenant/users',
 
+  // Dashboards & Financial Metrics
+  TENANT_FINANCIAL_SUMMARY: '/tenant/financial-summary',
   TENANT_DASHBOARD_METRICS: '/tenant/dashboard',
   TENANT_DASHBOARD_TODAY: '/tenant/dashboard/today',
   TENANT_DASHBOARD_SALES: '/tenant/dashboard/sales',
   TENANT_DASHBOARD_OFFICE: '/tenant/dashboard/office',
+  TENANT_DAILY_STATS: '/tenant/daily-stats',
 
+  // Sales
   LINE_SALES: '/tenant/line-sales',
   LINE_SALES_BREAKDOWN: '/tenant/line-sales/breakdown',
   COUNTER_SALES: '/tenant/counter-sales',
   COUNTER_SALES_BREAKDOWN: '/tenant/counter-sales/breakdown',
 
+  // Procurement & Parties
   PURCHASES: '/tenant/purchases',
   SUPPLIERS: '/tenant/suppliers',
   PARTIES: '/tenant/parties',
   CONTRA_SETTLEMENTS: '/tenant/contra-settlements',
 
+  // Customers & Ledger
   CUSTOMERS: '/tenant/customers',
   CUSTOMER_COLLECTIONS: '/tenant/customer-collections',
   CUSTOMER_ADVANCES: '/tenant/customer-advances',
 
+  // Operations
   EXPENSES: '/tenant/expenses',
+  EMPLOYEES: '/tenant/employees',
   ATTENDANCE: '/tenant/attendance',
   OVERTIME: '/tenant/overtime',
   ADVANCES: '/tenant/advances',
   SALARIES: '/tenant/salaries',
+  SALARIES_PENDING: '/tenant/salaries/pending',
+  SALARY_PAYMENTS: '/tenant/salary-payments',
 
+  // Cash & Bank
   CASH_BALANCE: '/tenant/cash/balance',
   CASH_ADD: '/tenant/cash/add',
   CASH_ADJUST: '/tenant/cash/adjust',
   CASH_TRANSACTIONS: '/tenant/cash/transactions',
-
   BANKS: '/tenant/banks',
+
+  // Products
   PRODUCTS: '/tenant/products',
   PRODUCT_ANALYTICS: '/tenant/products/analytics',
 
+  // Reports
   REPORTS_DAILY: '/tenant/reports/daily',
   REPORTS_SALES: '/tenant/reports/sales',
   REPORTS_ITEMS: '/tenant/reports/items',

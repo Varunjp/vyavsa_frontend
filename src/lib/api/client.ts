@@ -17,7 +17,6 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  withCredentials: true,
 });
 
 // Single-flight refresh token mutex
@@ -112,7 +111,6 @@ export async function refreshAccessToken(): Promise<string | null> {
         { refresh_token: refreshToken },
         {
           headers: { 'Content-Type': 'application/json' },
-          withCredentials: true,
         }
       );
 
