@@ -1,0 +1,46 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-check:
+    name: Code Quality & Build Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --no-audit
+
+      - name: Verify Code Formatting
+        run: npm run format:check
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript Strict Typecheck
+        run: npm run typecheck
+
+      - name: Execute Vitest Unit & Integration Tests
+        run: npm run test
+
+      - name: Build Next.js Production Bundle
+        env:
+          NEXT_PUBLIC_APP_NAME: "Vyavsa Bill Book"
+          NEXT_PUBLIC_APP_ENV: "production"
+          NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+          NEXT_PUBLIC_API_URL: "http://localhost:8080/api/v1"
+        run: npm run build
