@@ -8,7 +8,7 @@ import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Bank, CashTransaction } from '@/types';
-import { Wallet, Plus, ShieldAlert, History } from 'lucide-react';
+import { Wallet, Plus, ShieldAlert, History, Building2 } from 'lucide-react';
 import { AddCashModal } from './AddCashModal';
 import { AdjustCashModal } from './AdjustCashModal';
 import { AddBankModal } from './AddBankModal';
@@ -21,7 +21,6 @@ export function CashBankTab() {
   const [bankToEdit, setBankToEdit] = useState<Bank | null>(null);
   const [adjustBank, setAdjustBank] = useState<Bank | null>(null);
 
-  // Queries
   const { data: cashData, refetch: refetchCash } = useQuery({
     queryKey: ['cash-balance'],
     queryFn: () => cashBankService.getCashBalance(),
@@ -73,7 +72,7 @@ export function CashBankTab() {
     {
       key: 'description',
       header: 'Description',
-      render: t => <span className="small text-dark">{t.description || '-'}</span>,
+      render: t => <span className="small text-dark fw-medium">{t.description || '—'}</span>,
     },
     {
       key: 'amount',
@@ -84,7 +83,9 @@ export function CashBankTab() {
       key: 'balance',
       header: 'Drawer Tally After',
       render: t => (
-        <span className="font-mono text-secondary">{formatCurrency(t.new_balance)}</span>
+        <span className="font-mono text-secondary fw-semibold">
+          {formatCurrency(t.new_balance)}
+        </span>
       ),
     },
   ];
@@ -92,7 +93,7 @@ export function CashBankTab() {
   return (
     <div>
       {/* Top Section: Drawer Cash and Bank Accounts */}
-      <div className="row g-3 mb-4">
+      <div className="row g-4 mb-4">
         {/* Physical Drawer Cash Card */}
         <div className="col-lg-5">
           <Card
@@ -100,13 +101,29 @@ export function CashBankTab() {
             subtitle="Real-time physical bill drawer cash governance"
             className="h-100 mb-0"
           >
-            <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded border mb-3">
+            <div
+              className="d-flex align-items-center justify-content-between p-4 rounded-4 mb-3 text-white"
+              style={{
+                background: 'linear-gradient(135deg, #065f46 0%, #059669 60%, #10b981 100%)',
+                boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.35)',
+              }}
+            >
               <div>
-                <span className="text-muted small d-block">Current Cash Balance</span>
-                <h2 className="fw-bold font-mono text-dark mb-0">{formatCurrency(cashBal)}</h2>
+                <span
+                  className="text-uppercase fw-bold d-block mb-1"
+                  style={{ fontSize: '0.7rem', letterSpacing: '0.06em', opacity: 0.85 }}
+                >
+                  Verified Physical Drawer Tally
+                </span>
+                <h2 className="fw-extrabold font-mono text-white mb-0">
+                  {formatCurrency(cashBal)}
+                </h2>
               </div>
-              <div className="p-3 bg-success-subtle text-success rounded-3">
-                <Wallet size={32} />
+              <div
+                className="p-3 rounded-3 d-inline-flex align-items-center justify-content-center"
+                style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}
+              >
+                <Wallet size={28} className="text-white" />
               </div>
             </div>
 
@@ -127,7 +144,7 @@ export function CashBankTab() {
                 className="flex-fill"
                 onClick={() => setIsAdjustCashOpen(true)}
               >
-                Reconcile Cash
+                Reconcile Drawer
               </Button>
             </div>
           </Card>
@@ -153,42 +170,53 @@ export function CashBankTab() {
               </Button>
             }
           >
-            <div className="row g-2">
+            <div className="row g-3">
               {banksData && banksData.length > 0 ? (
                 banksData.map(bank => (
                   <div key={bank.id} className="col-sm-6">
-                    <div className="p-3 bg-light rounded border h-100 d-flex flex-column justify-content-between">
+                    <div
+                      className="p-3 rounded-3 border h-100 d-flex flex-column justify-content-between"
+                      style={{
+                        backgroundColor: '#f8fafc',
+                        borderColor: '#e2e8f0',
+                        borderLeft: '4px solid #4f46e5',
+                      }}
+                    >
                       <div>
-                        <div className="d-flex justify-content-between align-items-start">
-                          <span className="fw-bold text-dark">{bank.bank_name}</span>
+                        <div className="d-flex justify-content-between align-items-start gap-2">
+                          <div className="d-flex align-items-center gap-1.5">
+                            <Building2 size={15} className="text-primary flex-shrink-0" />
+                            <span className="fw-bold text-dark">{bank.bank_name}</span>
+                          </div>
                           <span className="badge bg-success-subtle text-success small">ACTIVE</span>
                         </div>
                         {bank.account_number && (
                           <span className="small text-muted font-mono d-block mt-1">
-                            A/C: ****{bank.account_number.slice(-4)}
+                            A/C: •••• {bank.account_number.slice(-4)}
+                            {bank.ifsc ? ` · ${bank.ifsc}` : ''}
                           </span>
                         )}
-                        <h4 className="fw-bold font-mono text-primary mt-2 mb-0">
+                        <h4 className="fw-extrabold font-mono text-primary mt-2 mb-0">
                           {formatCurrency(bank.current_balance)}
                         </h4>
                       </div>
 
-                      <div className="d-flex gap-1 mt-3 pt-2 border-top">
+                      <div className="d-flex gap-2 mt-3 pt-2 border-top">
                         <button
-                          className="btn btn-sm btn-link text-decoration-none text-secondary p-0 small"
+                          className="btn btn-sm btn-link text-decoration-none text-secondary p-0 small fw-semibold"
                           onClick={() => {
                             setBankToEdit(bank);
                             setIsAddBankOpen(true);
                           }}
                         >
-                          Edit
+                          Edit Details
                         </button>
                         <span className="text-muted">·</span>
                         <button
-                          className="btn btn-sm btn-link text-decoration-none text-danger p-0 small"
+                          className="btn btn-sm btn-link text-decoration-none text-danger p-0 small fw-semibold"
                           onClick={() => setAdjustBank(bank)}
                         >
-                          Reconcile
+                          Reconcile Balance
                         </button>
                       </div>
                     </div>
@@ -209,16 +237,19 @@ export function CashBankTab() {
       <Card
         title={
           <div className="d-flex align-items-center gap-2">
-            <History size={18} className="text-secondary" />
-            <span>Cash Drawer Reconciliation & Inflow/Outflow Audit</span>
+            <History size={18} className="text-primary" />
+            <span>Cash Drawer Reconciliation &amp; Inflow/Outflow Audit</span>
           </div>
         }
+        subtitle="Chronological ledger of every physical cash movement and audit adjustment"
+        noPadding
       >
         <DataTable
           columns={txnColumns}
           data={cashTxns?.data || []}
           keyExtractor={t => t.id}
           isLoading={txnsLoading}
+          className="border-0 shadow-none rounded-0"
           emptyTitle="No Cash Transactions Recorded"
           emptyDescription="Cash additions, retail counter collections, and drawer adjustments will appear here."
         />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Inbox } from 'lucide-react';
+import { Inbox, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './Button';
 
@@ -23,17 +23,31 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'd-flex flex-column align-items-center justify-content-center text-center p-5 border border-dashed rounded-3 bg-light',
+        'd-flex flex-column align-items-center justify-content-center text-center p-5 rounded-4 bg-white border',
         className
       )}
+      style={{
+        borderStyle: 'dashed',
+        borderColor: '#cbd5e1',
+        boxShadow: 'var(--shadow-xs)',
+      }}
     >
-      <div className="text-muted mb-3">
-        {icon || <Inbox size={48} className="text-secondary opacity-50" />}
+      <div
+        className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary mb-3"
+        style={{ width: 60, height: 60 }}
+      >
+        {icon || <Inbox size={28} />}
       </div>
-      <h6 className="fw-bold text-dark mb-1">{title}</h6>
-      {description && <p className="text-muted small mb-3 max-w-md">{description}</p>}
+      <h6 className="fw-bold text-dark mb-1" style={{ fontSize: '0.98rem' }}>
+        {title}
+      </h6>
+      {description && (
+        <p className="text-muted small mb-3" style={{ maxWidth: 420 }}>
+          {description}
+        </p>
+      )}
       {actionLabel && onAction && (
-        <Button variant="primary" size="sm" onClick={onAction}>
+        <Button variant="primary" size="sm" leftIcon={<Plus size={15} />} onClick={onAction}>
           {actionLabel}
         </Button>
       )}

@@ -36,8 +36,8 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (isLoading) {
     return (
-      <div className="p-5 text-center bg-white rounded border">
-        <LoadingSpinner size="md" label="Loading data..." />
+      <div className="p-5 text-center vyavsa-table-wrapper">
+        <LoadingSpinner size="md" label="Fetching ledger records..." />
       </div>
     );
   }
@@ -54,15 +54,14 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={cn('table-responsive bg-white rounded border shadow-sm', className)}>
+    <div className={cn('table-responsive vyavsa-table-wrapper', className)}>
       <table className="table table-hover align-middle mb-0">
-        <thead className="table-light">
+        <thead>
           <tr>
             {columns.map(col => (
               <th
                 key={col.key}
                 className={cn(
-                  'px-3 py-3 small fw-bold text-uppercase text-muted border-bottom',
                   col.align === 'center' && 'text-center',
                   col.align === 'right' && 'text-end',
                   col.className
@@ -80,7 +79,6 @@ export function DataTable<T>({
                 <td
                   key={col.key}
                   className={cn(
-                    'px-3 py-3 text-secondary',
                     col.align === 'center' && 'text-center',
                     col.align === 'right' && 'text-end',
                     col.className
@@ -88,7 +86,7 @@ export function DataTable<T>({
                 >
                   {col.render
                     ? col.render(item, rowIdx)
-                    : (((item as Record<string, unknown>)[col.key] as React.ReactNode) ?? '-')}
+                    : (((item as Record<string, unknown>)[col.key] as React.ReactNode) ?? '—')}
                 </td>
               ))}
             </tr>

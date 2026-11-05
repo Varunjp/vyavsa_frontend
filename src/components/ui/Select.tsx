@@ -22,7 +22,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="mb-3 w-100">
         {label && (
-          <label htmlFor={selectId} className="form-label fw-semibold text-secondary small mb-1">
+          <label
+            htmlFor={selectId}
+            className="form-label fw-semibold mb-1"
+            style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)' }}
+          >
             {label}
           </label>
         )}
@@ -39,7 +43,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error && <div className="invalid-feedback d-block">{error}</div>}
+        {error && <div className="invalid-feedback d-block fw-medium">{error}</div>}
         {!error && helperText && (
           <div className="form-text text-muted small mt-1">{helperText}</div>
         )}

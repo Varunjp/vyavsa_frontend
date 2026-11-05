@@ -7,6 +7,7 @@ import { customerService } from '@/features/customers/services/customerService';
 import { cashBankService } from '@/features/cash-bank/services/cashBankService';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/contexts/ToastContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { LineSale } from '@/types';
 import { Plus, Download, Search, CreditCard } from 'lucide-react';
@@ -14,12 +15,12 @@ import { CreateLineSaleModal } from './CreateLineSaleModal';
 import { RecordSalePaymentModal } from './RecordSalePaymentModal';
 
 export function LineSalesTab() {
+  const { showToast } = useToast();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activePaymentSale, setActivePaymentSale] = useState<LineSale | null>(null);
 
-  // Queries
   const {
     data: salesData,
     isLoading,
@@ -53,8 +54,9 @@ export function LineSalesTab() {
       a.download = `Invoice_${sale.invoice_number || sale.id.slice(0, 8)}.pdf`;
       a.click();
       window.URL.revokeObjectURL(url);
+      showToast('Line sale invoice PDF downloaded.', 'success');
     } catch {
-      alert('Failed to download invoice PDF');
+      showToast('Failed to download invoice PDF', 'error');
     }
   };
 
@@ -63,7 +65,7 @@ export function LineSalesTab() {
       key: 'invoice_number',
       header: 'Invoice #',
       render: s => (
-        <span className="fw-semibold font-mono text-dark">
+        <span className="fw-bold font-mono text-primary">
           {s.invoice_number || `#${s.id.slice(0, 8)}`}
         </span>
       ),
@@ -150,7 +152,7 @@ export function LineSalesTab() {
             </button>
           )}
           <button
-            className="btn btn-sm btn-outline-secondary p-1"
+            className="btn btn-sm btn-outline-secondary p-1 px-2"
             title="Download PDF"
             onClick={() => handleDownloadPDF(s)}
           >

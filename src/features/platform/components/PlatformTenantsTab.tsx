@@ -5,18 +5,25 @@ import { useQuery } from '@tanstack/react-query';
 import { platformService } from '../services/platformService';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/contexts/ToastContext';
 import { formatDate } from '@/lib/utils';
 import { PlatformTenantItem } from '@/types';
-import { Plus, Search, CheckCircle, XCircle, ShieldAlert } from 'lucide-react';
+import { Plus, Search, CheckCircle, ShieldAlert } from 'lucide-react';
 import { OnboardTenantModal } from './OnboardTenantModal';
 
 export function PlatformTenantsTab() {
+  const { showToast } = useToast();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [isOnboardOpen, setIsOnboardOpen] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    tenant: PlatformTenantItem;
+    newStatus: 'active' | 'inactive' | 'suspended';
+  } | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Queries
   const {
     data: tenantsData,
     isLoading,
@@ -37,16 +44,24 @@ export function PlatformTenantsTab() {
     queryFn: () => platformService.listPlans({ page_size: 50, status: 'active' }),
   });
 
-  const handleStatusChange = async (
-    tenant: PlatformTenantItem,
-    newStatus: 'active' | 'inactive' | 'suspended'
-  ) => {
-    if (!confirm(`Are you sure you want to mark tenant "${tenant.name}" as ${newStatus}?`)) return;
+  const confirmStatusChange = async () => {
+    if (!pendingStatusChange) return;
+    setIsUpdating(true);
     try {
-      await platformService.updateTenantStatus(tenant.id, newStatus);
+      await platformService.updateTenantStatus(
+        pendingStatusChange.tenant.id,
+        pendingStatusChange.newStatus
+      );
+      showToast(
+        `Tenant "${pendingStatusChange.tenant.name}" status updated to ${pendingStatusChange.newStatus}.`,
+        'success'
+      );
+      setPendingStatusChange(null);
       refetch();
     } catch {
-      alert('Failed to update tenant status');
+      showToast('Failed to update tenant status', 'error');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -91,7 +106,7 @@ export function PlatformTenantsTab() {
             <button
               className="btn btn-sm btn-outline-warning p-1 px-2 d-inline-flex align-items-center gap-1 small"
               title="Suspend Tenant"
-              onClick={() => handleStatusChange(t, 'suspended')}
+              onClick={() => setPendingStatusChange({ tenant: t, newStatus: 'suspended' })}
             >
               <ShieldAlert size={14} /> Suspend
             </button>
@@ -99,7 +114,7 @@ export function PlatformTenantsTab() {
             <button
               className="btn btn-sm btn-outline-success p-1 px-2 d-inline-flex align-items-center gap-1 small"
               title="Activate Tenant"
-              onClick={() => handleStatusChange(t, 'active')}
+              onClick={() => setPendingStatusChange({ tenant: t, newStatus: 'active' })}
             >
               <CheckCircle size={14} /> Activate
             </button>
@@ -195,6 +210,17 @@ export function PlatformTenantsTab() {
         onClose={() => setIsOnboardOpen(false)}
         onSuccess={() => refetch()}
         plans={plansData?.data || []}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(pendingStatusChange)}
+        onClose={() => setPendingStatusChange(null)}
+        onConfirm={confirmStatusChange}
+        title="Update Tenant Status"
+        message={`Are you sure you want to mark tenant "${pendingStatusChange?.tenant.name}" as ${pendingStatusChange?.newStatus}?`}
+        confirmLabel="Confirm Status"
+        variant={pendingStatusChange?.newStatus === 'suspended' ? 'danger' : 'primary'}
+        isLoading={isUpdating}
       />
     </div>
   );

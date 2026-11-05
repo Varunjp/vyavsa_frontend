@@ -7,17 +7,21 @@ import { cashBankService } from '@/features/cash-bank/services/cashBankService';
 import { employeeService } from '@/features/employees/services/employeeService';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/contexts/ToastContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Expense } from '@/types';
 import { Plus, Search, Trash2 } from 'lucide-react';
 import { CreateExpenseModal } from './CreateExpenseModal';
 
 export function ExpensesTab() {
+  const { showToast } = useToast();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Queries
   const {
     data: expensesData,
     isLoading,
@@ -37,13 +41,18 @@ export function ExpensesTab() {
     queryFn: () => employeeService.listEmployees({ page_size: 100 }),
   });
 
-  const handleDelete = async (exp: Expense) => {
-    if (!confirm(`Are you sure you want to delete expense "${exp.item}"?`)) return;
+  const confirmDelete = async () => {
+    if (!expenseToDelete) return;
+    setIsDeleting(true);
     try {
-      await expenseService.deleteExpense(exp.id);
+      await expenseService.deleteExpense(expenseToDelete.id);
+      showToast(`Expense "${expenseToDelete.item}" deleted.`, 'info');
+      setExpenseToDelete(null);
       refetch();
     } catch {
-      alert('Failed to delete expense');
+      showToast('Failed to delete expense record', 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -93,8 +102,12 @@ export function ExpensesTab() {
       header: 'Actions',
       align: 'right',
       render: e => (
-        <button className="btn btn-sm btn-link text-danger p-0" onClick={() => handleDelete(e)}>
-          <Trash2 size={16} />
+        <button
+          className="btn btn-sm btn-outline-danger p-1 px-2"
+          title="Delete Expense"
+          onClick={() => setExpenseToDelete(e)}
+        >
+          <Trash2 size={14} />
         </button>
       ),
     },
@@ -166,13 +179,25 @@ export function ExpensesTab() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Create Expense Modal */}
       <CreateExpenseModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSuccess={() => refetch()}
         banks={banksData || []}
         employees={employeesData?.data || []}
+      />
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        isOpen={Boolean(expenseToDelete)}
+        onClose={() => setExpenseToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Operating Expense"
+        message={`Are you sure you want to permanently remove expense "${expenseToDelete?.item}"?`}
+        confirmLabel="Delete Expense"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   );

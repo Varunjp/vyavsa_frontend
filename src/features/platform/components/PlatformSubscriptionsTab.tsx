@@ -5,13 +5,21 @@ import { useQuery } from '@tanstack/react-query';
 import { platformService } from '../services/platformService';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/contexts/ToastContext';
 import { formatDate } from '@/lib/utils';
 import { PlatformSubscriptionItem } from '@/types';
-import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 
 export function PlatformSubscriptionsTab() {
+  const { showToast } = useToast();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const [pendingAction, setPendingAction] = useState<{
+    sub: PlatformSubscriptionItem;
+    status: 'active' | 'past_due' | 'expired' | 'cancelled';
+  } | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const {
     data: subsData,
@@ -27,19 +35,24 @@ export function PlatformSubscriptionsTab() {
       }),
   });
 
-  const handleUpdateStatus = async (
-    sub: PlatformSubscriptionItem,
-    status: 'active' | 'past_due' | 'expired' | 'cancelled'
-  ) => {
-    if (
-      !confirm(`Are you sure you want to mark subscription for "${sub.tenant_name}" as ${status}?`)
-    )
-      return;
+  const confirmUpdateStatus = async () => {
+    if (!pendingAction) return;
+    setIsUpdating(true);
     try {
-      await platformService.updateSubscriptionStatus(sub.tenant_id, status);
+      await platformService.updateSubscriptionStatus(
+        pendingAction.sub.tenant_id,
+        pendingAction.status
+      );
+      showToast(
+        `Subscription for "${pendingAction.sub.tenant_name}" marked as ${pendingAction.status}.`,
+        'success'
+      );
+      setPendingAction(null);
       refetch();
     } catch {
-      alert('Failed to update subscription status');
+      showToast('Failed to update subscription status', 'error');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -94,7 +107,7 @@ export function PlatformSubscriptionsTab() {
             <button
               className="btn btn-sm btn-outline-success p-1 px-2 d-inline-flex align-items-center gap-1 small"
               title="Activate"
-              onClick={() => handleUpdateStatus(s, 'active')}
+              onClick={() => setPendingAction({ sub: s, status: 'active' })}
             >
               <CheckCircle size={14} /> Activate
             </button>
@@ -103,7 +116,7 @@ export function PlatformSubscriptionsTab() {
             <button
               className="btn btn-sm btn-outline-danger p-1 px-2 d-inline-flex align-items-center gap-1 small"
               title="Cancel Subscription"
-              onClick={() => handleUpdateStatus(s, 'cancelled')}
+              onClick={() => setPendingAction({ sub: s, status: 'cancelled' })}
             >
               <XCircle size={14} /> Cancel
             </button>
@@ -166,6 +179,17 @@ export function PlatformSubscriptionsTab() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(pendingAction)}
+        onClose={() => setPendingAction(null)}
+        onConfirm={confirmUpdateStatus}
+        title="Update Subscription Status"
+        message={`Are you sure you want to mark subscription for "${pendingAction?.sub.tenant_name}" as ${pendingAction?.status}?`}
+        confirmLabel="Update Status"
+        variant={pendingAction?.status === 'cancelled' ? 'danger' : 'primary'}
+        isLoading={isUpdating}
+      />
     </div>
   );
 }

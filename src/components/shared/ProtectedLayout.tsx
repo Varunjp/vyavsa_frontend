@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ShieldAlert } from 'lucide-react';
 
 export interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ export function ProtectedLayout({ children, requiredRole }: ProtectedLayoutProps
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isPlatform = pathname.startsWith('/platform');
 
@@ -26,7 +28,7 @@ export function ProtectedLayout({ children, requiredRole }: ProtectedLayoutProps
   }, [isLoading, isAuthenticated, router, isPlatform]);
 
   if (isLoading) {
-    return <LoadingSpinner fullPage label="Authenticating session..." />;
+    return <LoadingSpinner fullPage label="Authenticating workspace session..." />;
   }
 
   if (!isAuthenticated) {
@@ -36,10 +38,17 @@ export function ProtectedLayout({ children, requiredRole }: ProtectedLayoutProps
   if (requiredRole && user?.role !== requiredRole && user?.role !== 'platform_admin') {
     return (
       <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light p-4">
-        <div className="card shadow-sm border-0 p-4 text-center max-w-md">
-          <h4 className="text-danger fw-bold mb-2">Access Denied</h4>
-          <p className="text-muted small mb-3">
-            You do not possess the required role permissions ({requiredRole}) to view this resource.
+        <div className="card vyavsa-card p-5 text-center" style={{ maxWidth: 440 }}>
+          <div
+            className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger mx-auto mb-3"
+            style={{ width: 56, height: 56 }}
+          >
+            <ShieldAlert size={28} />
+          </div>
+          <h4 className="fw-bold text-dark mb-2">Restricted Access</h4>
+          <p className="text-muted small mb-4">
+            Your current role does not include permission (<code>{requiredRole}</code>) to view this
+            section.
           </p>
           <button className="btn btn-primary btn-sm" onClick={() => router.push('/dashboard')}>
             Return to Dashboard
@@ -51,10 +60,10 @@ export function ProtectedLayout({ children, requiredRole }: ProtectedLayoutProps
 
   return (
     <div className="app-shell">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="app-main">
-        <Header />
-        <main className="app-content">{children}</main>
+        <Header onOpenSidebar={() => setSidebarOpen(true)} />
+        <main className="app-content animate-fade-in">{children}</main>
       </div>
     </div>
   );

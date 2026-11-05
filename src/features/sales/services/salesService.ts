@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/constants';
-import { ApiResponse, CounterSale, LineSale, Product } from '@/types';
+import { ApiResponse, CounterSale, LineSale, Product, SalePaymentBreakdown } from '@/types';
 import {
   CreateCounterSaleInput,
   CreateLineSaleInput,
@@ -11,6 +11,7 @@ export interface SalesListParams {
   page?: number;
   page_size?: number;
   search?: string;
+  date?: string;
   from_date?: string;
   to_date?: string;
   customer_id?: string;
@@ -84,10 +85,16 @@ export const salesService = {
     return res.data;
   },
 
-  async getLineSaleBreakdown(params: { from_date?: string; to_date?: string } = {}): Promise<any> {
-    const res = await apiClient.get<ApiResponse<any>>(API_ENDPOINTS.LINE_SALES_BREAKDOWN, {
-      params,
-    });
+  async getLineSaleBreakdown(
+    params: { from_date?: string; to_date?: string; date?: string; all?: boolean } = {}
+  ): Promise<SalePaymentBreakdown> {
+    const res = await apiClient.get<ApiResponse<SalePaymentBreakdown>>(
+      API_ENDPOINTS.LINE_SALES_BREAKDOWN,
+      {
+        params,
+      }
+    );
+    if (!res.data.data) throw new Error(res.data.message || 'Failed to fetch line sale breakdown');
     return res.data.data;
   },
 
@@ -160,11 +167,16 @@ export const salesService = {
   },
 
   async getCounterSaleBreakdown(
-    params: { from_date?: string; to_date?: string } = {}
-  ): Promise<any> {
-    const res = await apiClient.get<ApiResponse<any>>(API_ENDPOINTS.COUNTER_SALES_BREAKDOWN, {
-      params,
-    });
+    params: { from_date?: string; to_date?: string; date?: string; all?: boolean } = {}
+  ): Promise<SalePaymentBreakdown> {
+    const res = await apiClient.get<ApiResponse<SalePaymentBreakdown>>(
+      API_ENDPOINTS.COUNTER_SALES_BREAKDOWN,
+      {
+        params,
+      }
+    );
+    if (!res.data.data)
+      throw new Error(res.data.message || 'Failed to fetch counter sale breakdown');
     return res.data.data;
   },
 

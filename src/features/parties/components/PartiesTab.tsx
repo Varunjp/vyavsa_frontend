@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { partyService } from '../services/partyService';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/contexts/ToastContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ContraSettlement, Party } from '@/types';
 import { Plus, Search, ArrowRightLeft, Edit, Building2, History, XCircle } from 'lucide-react';
@@ -12,6 +14,7 @@ import { CreatePartyModal } from './CreatePartyModal';
 import { CreateContraModal } from './CreateContraModal';
 
 export function PartiesTab() {
+  const { showToast } = useToast();
   const [subTab, setSubTab] = useState<'parties' | 'contra_history'>('parties');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -20,6 +23,8 @@ export function PartiesTab() {
   const [isPartyModalOpen, setIsPartyModalOpen] = useState(false);
   const [partyToEdit, setPartyToEdit] = useState<Party | null>(null);
   const [contraParty, setContraParty] = useState<Party | null>(null);
+  const [contraToCancel, setContraToCancel] = useState<ContraSettlement | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Queries
   const {
@@ -42,21 +47,19 @@ export function PartiesTab() {
     enabled: subTab === 'contra_history',
   });
 
-  const handleCancelContra = async (contra: ContraSettlement) => {
-    if (
-      !confirm(
-        `Are you sure you want to cancel and reverse contra settlement #${contra.settlement_number}?`
-      )
-    ) {
-      return;
-    }
+  const confirmCancelContra = async () => {
+    if (!contraToCancel) return;
+    setIsCancelling(true);
     try {
-      await partyService.cancelContraSettlement(contra.id);
-      alert('Contra settlement cancelled and reversed successfully.');
+      await partyService.cancelContraSettlement(contraToCancel.id);
+      showToast('Contra settlement cancelled and mutual balances reversed.', 'info');
+      setContraToCancel(null);
       refetchContra();
       refetchParties();
     } catch {
-      alert('Failed to cancel contra settlement');
+      showToast('Failed to cancel contra settlement', 'error');
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -163,7 +166,7 @@ export function PartiesTab() {
       key: 'settlement_number',
       header: 'Settlement #',
       render: c => (
-        <span className="font-mono fw-semibold text-dark">
+        <span className="font-mono fw-semibold text-primary">
           {c.settlement_number || `#${c.id.slice(0, 8)}`}
         </span>
       ),
@@ -210,9 +213,9 @@ export function PartiesTab() {
             <button
               className="btn btn-sm btn-outline-danger p-1 px-2 d-inline-flex align-items-center gap-1"
               title="Cancel Contra Settlement"
-              onClick={() => handleCancelContra(c)}
+              onClick={() => setContraToCancel(c)}
             >
-              <XCircle size={14} /> Cancel
+              <XCircle size={14} /> Reverse
             </button>
           )}
         </div>
@@ -328,6 +331,17 @@ export function PartiesTab() {
           party={contraParty}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(contraToCancel)}
+        onClose={() => setContraToCancel(null)}
+        onConfirm={confirmCancelContra}
+        title="Reverse Contra Settlement"
+        message={`Are you sure you want to cancel and reverse contra settlement #${contraToCancel?.settlement_number || ''}?`}
+        confirmLabel="Confirm Reversal"
+        variant="danger"
+        isLoading={isCancelling}
+      />
     </div>
   );
 }

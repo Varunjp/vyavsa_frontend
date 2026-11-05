@@ -169,6 +169,12 @@ export interface FinancialMetrics {
   pending_salary: string | number;
   today_employee_salary: string | number;
   bank_balances?: Bank[];
+  today_stats?: DailyStats;
+  today_overview?: TodayOverview;
+  requested_date?: string;
+  data_date?: string;
+  is_current?: boolean;
+  days_old?: number;
 }
 
 export interface TodayOverview {
@@ -196,16 +202,58 @@ export interface TodayOverview {
 }
 
 export interface DailyStats {
-  tenant_id: string;
-  date: string;
+  tenant_id?: string;
+  date?: string;
   line_sale_amount: string | number;
   counter_sale_amount: string | number;
   total_sales: string | number;
   purchase_amount: string | number;
   expense_amount: string | number;
   advance_amount: string | number;
+  wages_amount?: string | number;
   attendance_present: number;
   attendance_absent: number;
+  today_employee_salary?: string | number;
+  amount_received?: string | number;
+  amount_paid?: string | number;
+}
+
+export interface SaleBankBreakdown {
+  bank_id?: string;
+  bank_name: string;
+  account_number?: string;
+  amount: string | number;
+  percentage: number;
+}
+
+export interface SalePaymentBreakdown {
+  total_sales: string | number;
+  cash_received: string | number;
+  bank_received: string | number;
+  total_received: string | number;
+  advance_applied: string | number;
+  payable_applied: string | number;
+  contra_amount?: string | number;
+  total_due: string | number;
+  sales_count: number;
+  start_date?: string;
+  end_date?: string;
+  is_reconciled?: boolean;
+  bank_breakdown?: SaleBankBreakdown[];
+}
+
+export interface OfficeDashboardData {
+  business_date: string;
+  currency: string;
+  total_cash_collected: string | number;
+  total_bank_received: string | number;
+  total_attendance: number;
+  present_count: number;
+  absent_count: number;
+  half_day_count: number;
+  total_active_employees: number;
+  total_sales_count: number;
+  total_sales_amount: string | number;
 }
 
 // ----------------------------------------------------

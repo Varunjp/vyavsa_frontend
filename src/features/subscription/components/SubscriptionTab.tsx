@@ -6,16 +6,18 @@ import { subscriptionService } from '../services/subscriptionService';
 import { Card } from '@/components/ui/Card';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Plan, PlanTransaction } from '@/types';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Sparkles } from 'lucide-react';
 import { useToast } from '@/contexts/ToastContext';
 
 export function SubscriptionTab() {
   const { showToast } = useToast();
   const [isPurchasing, setIsPurchasing] = useState<string | null>(null);
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  // Queries
   const {
     data: sub,
     isLoading: subLoading,
@@ -39,7 +41,7 @@ export function SubscriptionTab() {
     setIsPurchasing(plan.id);
     try {
       await subscriptionService.purchasePlan(plan.id, 'card');
-      showToast(`Subscription plan "${plan.plan_name}" activated successfully!`, 'success');
+      showToast(`Subscription plan "${plan.plan_name}" activated!`, 'success');
       refetchSub();
     } catch (err: any) {
       showToast(err.message || 'Payment initiation failed', 'error');
@@ -48,20 +50,17 @@ export function SubscriptionTab() {
     }
   };
 
-  const handleCancel = async () => {
-    if (
-      !confirm(
-        'Are you sure you want to cancel your recurring subscription? Access will remain active until the billing period ends.'
-      )
-    ) {
-      return;
-    }
+  const confirmCancel = async () => {
+    setIsCancelling(true);
     try {
       await subscriptionService.cancelSubscription(false);
-      showToast('Subscription set to cancel at the end of the current billing cycle.', 'info');
+      showToast('Subscription scheduled to cancel at the end of the billing cycle.', 'info');
+      setIsCancelConfirmOpen(false);
       refetchSub();
     } catch (err: any) {
       showToast(err.message || 'Failed to cancel subscription', 'error');
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -70,7 +69,7 @@ export function SubscriptionTab() {
       key: 'transaction_id',
       header: 'Transaction ID',
       render: t => (
-        <span className="font-mono small text-dark">
+        <span className="font-mono small text-primary fw-semibold">
           {t.transaction_id || `#${t.id.slice(0, 8)}`}
         </span>
       ),
@@ -132,7 +131,8 @@ export function SubscriptionTab() {
           <div className="row g-3 align-items-center">
             <div className="col-md-7">
               <div className="d-flex align-items-center gap-2 mb-1">
-                <h3 className="fw-bold text-dark mb-0">
+                <Sparkles size={18} className="text-primary" />
+                <h3 className="fw-extrabold text-dark mb-0">
                   {sub.current_plan_name || 'Standard Tier'}
                 </h3>
                 <span
@@ -170,7 +170,7 @@ export function SubscriptionTab() {
                   Subscription scheduled for termination on {formatDate(sub.end_date || '')}.
                 </div>
               ) : (
-                <Button variant="outline" size="sm" onClick={handleCancel}>
+                <Button variant="outline" size="sm" onClick={() => setIsCancelConfirmOpen(true)}>
                   Cancel Renewal
                 </Button>
               )}
@@ -197,14 +197,14 @@ export function SubscriptionTab() {
               return (
                 <div key={plan.id} className="col-md-4">
                   <div
-                    className={`card h-100 p-4 border rounded shadow-sm ${isCurrent ? 'border-primary' : ''}`}
+                    className={`card vyavsa-card h-100 p-4 mb-0 ${isCurrent ? 'border-primary border-2' : ''}`}
                   >
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <h5 className="fw-bold text-dark mb-0">{plan.plan_name}</h5>
                       {isCurrent && <span className="badge bg-primary small">Current Plan</span>}
                     </div>
                     <div className="my-3">
-                      <span className="fs-3 fw-bold font-mono text-dark">
+                      <span className="fs-3 fw-extrabold font-mono text-dark">
                         {formatCurrency(plan.price)}
                       </span>
                       <span className="text-muted small"> / {plan.billing_interval}</span>
@@ -238,16 +238,29 @@ export function SubscriptionTab() {
       <Card
         title="Billing & Renewal Transaction History"
         subtitle="Official invoices and payment gateway logs"
+        noPadding
       >
         <DataTable
           columns={txnColumns}
           data={txns?.data || []}
           keyExtractor={t => t.id}
           isLoading={txnsLoading}
+          className="border-0 shadow-none rounded-0"
           emptyTitle="No Billing Transactions Yet"
           emptyDescription="Plan subscriptions and upgrades will generate official invoices and transaction receipts here."
         />
       </Card>
+
+      <ConfirmDialog
+        isOpen={isCancelConfirmOpen}
+        onClose={() => setIsCancelConfirmOpen(false)}
+        onConfirm={confirmCancel}
+        title="Cancel Recurring Subscription"
+        message="Are you sure you want to cancel your recurring subscription? Your workspace will remain active until the current billing period ends."
+        confirmLabel="Cancel Renewal"
+        variant="danger"
+        isLoading={isCancelling}
+      />
     </div>
   );
 }

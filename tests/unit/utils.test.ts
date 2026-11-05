@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatCurrency, formatDate, cn } from '@/lib/utils';
+import { formatCurrency, formatDate, cn, getTodayDateString } from '@/lib/utils';
 
 describe('formatCurrency', () => {
   it('formats positive numbers in Indian Rupee format', () => {
@@ -37,5 +37,12 @@ describe('cn', () => {
     expect(cn('btn', false && 'hidden', 'btn-primary', null, undefined, 'active')).toBe(
       'btn btn-primary active'
     );
+  });
+});
+
+describe('getTodayDateString', () => {
+  it('returns valid YYYY-MM-DD date string', () => {
+    const today = getTodayDateString();
+    expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

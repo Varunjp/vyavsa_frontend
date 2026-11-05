@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState } from 'react';
-import { AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, AlertTriangle, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -31,49 +31,67 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
     setTimeout(() => {
       removeToast(id);
-    }, 4000);
+    }, 4500);
   };
 
   return (
     <ToastContext.Provider value={{ showToast, removeToast }}>
       {children}
       <div
-        className="toast-container position-fixed bottom-0 end-0 p-3"
-        style={{ zIndex: 9999 }}
+        className="toast-container position-fixed bottom-0 end-0 p-3 d-flex flex-column gap-2"
+        style={{ zIndex: 9999, maxWidth: '400px', width: '100%' }}
         aria-live="polite"
       >
         {toasts.map(toast => {
-          let bgClass = 'text-bg-primary';
           let Icon = Info;
+          let accentColor = '#4f46e5';
+          let badgeBg = '#eef2ff';
+
           if (toast.type === 'success') {
-            bgClass = 'text-bg-success';
-            Icon = CheckCircle;
+            Icon = CheckCircle2;
+            accentColor = '#10b981';
+            badgeBg = '#ecfdf5';
           } else if (toast.type === 'error') {
-            bgClass = 'text-bg-danger';
             Icon = AlertCircle;
+            accentColor = '#ef4444';
+            badgeBg = '#fef2f2';
           } else if (toast.type === 'warning') {
-            bgClass = 'text-bg-warning';
-            Icon = AlertCircle;
+            Icon = AlertTriangle;
+            accentColor = '#f59e0b';
+            badgeBg = '#fffbeb';
           }
 
           return (
             <div
               key={toast.id}
-              className={`toast show align-items-center ${bgClass} border-0 mb-2 shadow-sm`}
+              className="d-flex align-items-center justify-content-between gap-3 bg-white p-3 rounded-3 shadow-lg border animate-fade-in"
+              style={{
+                borderLeft: `4px solid ${accentColor}`,
+              }}
               role="alert"
             >
-              <div className="d-flex">
-                <div className="toast-body d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center gap-3">
+                <div
+                  className="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                  style={{
+                    width: 34,
+                    height: 34,
+                    backgroundColor: badgeBg,
+                    color: accentColor,
+                  }}
+                >
                   <Icon size={18} />
-                  <span>{toast.message}</span>
                 </div>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white me-2 m-auto"
-                  aria-label="Close"
-                  onClick={() => removeToast(toast.id)}
-                />
+                <div className="small fw-semibold text-dark">{toast.message}</div>
               </div>
+              <button
+                type="button"
+                className="btn btn-sm btn-link text-muted p-1 text-decoration-none"
+                aria-label="Close"
+                onClick={() => removeToast(toast.id)}
+              >
+                <X size={15} />
+              </button>
             </div>
           );
         })}

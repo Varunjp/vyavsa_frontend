@@ -7,6 +7,7 @@ import { customerService } from '@/features/customers/services/customerService';
 import { cashBankService } from '@/features/cash-bank/services/cashBankService';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/contexts/ToastContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { CounterSale } from '@/types';
 import { Plus, Download, Search, CreditCard } from 'lucide-react';
@@ -14,12 +15,12 @@ import { CreateCounterSaleModal } from './CreateCounterSaleModal';
 import { RecordSalePaymentModal } from './RecordSalePaymentModal';
 
 export function CounterSalesTab() {
+  const { showToast } = useToast();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [activePaymentSale, setActivePaymentSale] = useState<CounterSale | null>(null);
 
-  // Queries
   const {
     data: salesData,
     isLoading,
@@ -48,8 +49,9 @@ export function CounterSalesTab() {
       a.download = `Receipt_${sale.invoice_number || sale.id.slice(0, 8)}.pdf`;
       a.click();
       window.URL.revokeObjectURL(url);
+      showToast('Counter sale receipt PDF downloaded.', 'success');
     } catch {
-      alert('Failed to download counter sale receipt PDF');
+      showToast('Failed to download counter sale receipt PDF', 'error');
     }
   };
 
@@ -58,7 +60,7 @@ export function CounterSalesTab() {
       key: 'invoice_number',
       header: 'Receipt #',
       render: s => (
-        <span className="fw-semibold font-mono text-dark">
+        <span className="fw-bold font-mono text-primary">
           {s.invoice_number || `#${s.id.slice(0, 8)}`}
         </span>
       ),
@@ -126,7 +128,7 @@ export function CounterSalesTab() {
             </button>
           )}
           <button
-            className="btn btn-sm btn-outline-secondary p-1"
+            className="btn btn-sm btn-outline-secondary p-1 px-2"
             title="Download PDF"
             onClick={() => handleDownloadPDF(s)}
           >

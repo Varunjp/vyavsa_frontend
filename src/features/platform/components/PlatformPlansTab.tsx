@@ -5,17 +5,21 @@ import { useQuery } from '@tanstack/react-query';
 import { platformService } from '../services/platformService';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/contexts/ToastContext';
 import { formatCurrency } from '@/lib/utils';
 import { Plan } from '@/types';
 import { Plus, Edit, Archive } from 'lucide-react';
 import { CreatePlanModal } from './CreatePlanModal';
 
 export function PlatformPlansTab() {
-  const [page, setPage] = useState(1);
+  const { showToast } = useToast();
+  const [page] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [planToEdit, setPlanToEdit] = useState<Plan | null>(null);
+  const [planToArchive, setPlanToArchive] = useState<Plan | null>(null);
+  const [isArchiving, setIsArchiving] = useState(false);
 
-  // Queries
   const {
     data: plansData,
     isLoading,
@@ -25,13 +29,18 @@ export function PlatformPlansTab() {
     queryFn: () => platformService.listPlans({ page, page_size: 20, status: 'all' }),
   });
 
-  const handleArchive = async (plan: Plan) => {
-    if (!confirm(`Are you sure you want to archive plan "${plan.plan_name}"?`)) return;
+  const confirmArchive = async () => {
+    if (!planToArchive) return;
+    setIsArchiving(true);
     try {
-      await platformService.archivePlan(plan.id);
+      await platformService.archivePlan(planToArchive.id);
+      showToast(`Plan "${planToArchive.plan_name}" archived.`, 'info');
+      setPlanToArchive(null);
       refetch();
     } catch {
-      alert('Failed to archive plan');
+      showToast('Failed to archive plan', 'error');
+    } finally {
+      setIsArchiving(false);
     }
   };
 
@@ -77,7 +86,7 @@ export function PlatformPlansTab() {
       render: p => (
         <div className="d-flex align-items-center justify-content-end gap-1">
           <button
-            className="btn btn-sm btn-outline-secondary p-1"
+            className="btn btn-sm btn-outline-secondary p-1 px-2"
             title="Edit Plan"
             onClick={() => {
               setPlanToEdit(p);
@@ -88,9 +97,9 @@ export function PlatformPlansTab() {
           </button>
           {p.status !== 'archived' && (
             <button
-              className="btn btn-sm btn-outline-danger p-1"
+              className="btn btn-sm btn-outline-danger p-1 px-2"
               title="Archive Plan"
-              onClick={() => handleArchive(p)}
+              onClick={() => setPlanToArchive(p)}
             >
               <Archive size={14} />
             </button>
@@ -139,6 +148,17 @@ export function PlatformPlansTab() {
         }}
         onSuccess={() => refetch()}
         planToEdit={planToEdit}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(planToArchive)}
+        onClose={() => setPlanToArchive(null)}
+        onConfirm={confirmArchive}
+        title="Archive Subscription Plan"
+        message={`Are you sure you want to archive plan "${planToArchive?.plan_name}"? Existing subscribers will remain active, but new tenants cannot select it.`}
+        confirmLabel="Archive Plan"
+        variant="danger"
+        isLoading={isArchiving}
       />
     </div>
   );

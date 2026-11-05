@@ -27,11 +27,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     let variantClass = 'btn-primary';
-    if (variant === 'secondary') variantClass = 'btn-secondary';
+    if (variant === 'secondary') variantClass = 'btn-outline-secondary';
     if (variant === 'outline') variantClass = 'btn-outline-primary';
     if (variant === 'danger') variantClass = 'btn-danger';
-    if (variant === 'ghost') variantClass = 'btn-light border-0';
-    if (variant === 'link') variantClass = 'btn-link text-decoration-none';
+    if (variant === 'ghost') variantClass = 'btn-light border-0 bg-transparent text-secondary';
+    if (variant === 'link') variantClass = 'btn-link text-decoration-none p-0';
 
     let sizeClass = '';
     if (size === 'sm') sizeClass = 'btn-sm';
@@ -51,9 +51,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && <Loader2 className="spinner-border-sm animate-spin" size={16} />}
-        {!isLoading && leftIcon && <span className="d-inline-flex">{leftIcon}</span>}
+        {!isLoading && leftIcon && <span className="d-inline-flex align-items-center">{leftIcon}</span>}
         <span>{children}</span>
-        {!isLoading && rightIcon && <span className="d-inline-flex">{rightIcon}</span>}
+        {!isLoading && rightIcon && <span className="d-inline-flex align-items-center">{rightIcon}</span>}
       </button>
     );
   }

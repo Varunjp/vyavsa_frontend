@@ -9,6 +9,7 @@ import { updateSettingsSchema, UpdateSettingsInput } from '../schemas/settingsSc
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { DataTable, Column } from '@/components/ui/DataTable';
 import { useToast } from '@/contexts/ToastContext';
 import { TenantUserItem } from '@/types';
@@ -19,6 +20,9 @@ export function SettingsTab() {
   const { showToast } = useToast();
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [confirmRemoveLogo, setConfirmRemoveLogo] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<TenantUserItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Queries
   const { data: profile, refetch: refetchProfile } = useQuery({
@@ -59,7 +63,7 @@ export function SettingsTab() {
   const onSaveProfile = async (data: UpdateSettingsInput) => {
     try {
       await settingsService.updateSettings(data);
-      showToast('Business organization details updated successfully!', 'success');
+      showToast('Business organization details updated!', 'success');
       refetchProfile();
     } catch (err: any) {
       showToast(err.message || 'Failed to update settings', 'error');
@@ -72,7 +76,7 @@ export function SettingsTab() {
     setIsUploadingLogo(true);
     try {
       await settingsService.uploadLogo(file);
-      showToast('Company logo updated successfully!', 'success');
+      showToast('Company logo updated!', 'success');
       refetchProfile();
     } catch (err: any) {
       showToast(err.message || 'Failed to upload logo', 'error');
@@ -81,25 +85,32 @@ export function SettingsTab() {
     }
   };
 
-  const handleDeleteLogo = async () => {
-    if (!confirm('Are you sure you want to remove the business logo?')) return;
+  const executeDeleteLogo = async () => {
+    setIsDeleting(true);
     try {
       await settingsService.deleteLogo();
-      showToast('Logo removed successfully.', 'info');
+      showToast('Logo removed.', 'info');
+      setConfirmRemoveLogo(false);
       refetchProfile();
     } catch (err: any) {
       showToast(err.message || 'Failed to remove logo', 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleDeleteUser = async (u: TenantUserItem) => {
-    if (!confirm(`Are you sure you want to remove user "${u.name}" (${u.email})?`)) return;
+  const executeDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
     try {
-      await settingsService.deleteTenantUser(u.id);
-      showToast(`User ${u.name} removed`, 'info');
+      await settingsService.deleteTenantUser(userToDelete.id);
+      showToast(`User ${userToDelete.name} removed`, 'info');
+      setUserToDelete(null);
       refetchUsers();
     } catch (err: any) {
       showToast(err.message || 'Failed to delete user', 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -136,11 +147,11 @@ export function SettingsTab() {
       align: 'right',
       render: u => (
         <button
-          className="btn btn-sm btn-link text-danger p-0"
+          className="btn btn-sm btn-outline-danger p-1 px-2"
           title="Remove User"
-          onClick={() => handleDeleteUser(u)}
+          onClick={() => setUserToDelete(u)}
         >
-          <Trash2 size={16} />
+          <Trash2 size={14} />
         </button>
       ),
     },
@@ -237,7 +248,7 @@ export function SettingsTab() {
       >
         <div className="d-flex align-items-center gap-4">
           <div
-            className="rounded border p-2 d-flex align-items-center justify-content-center bg-light"
+            className="rounded-3 border p-2 d-flex align-items-center justify-content-center bg-light"
             style={{ width: '100px', height: '100px' }}
           >
             {profile?.logo_url ? (
@@ -272,7 +283,7 @@ export function SettingsTab() {
                   variant="outline"
                   size="sm"
                   leftIcon={<Trash2 size={14} className="text-danger" />}
-                  onClick={handleDeleteLogo}
+                  onClick={() => setConfirmRemoveLogo(true)}
                 >
                   Remove Logo
                 </Button>
@@ -290,10 +301,11 @@ export function SettingsTab() {
         title={
           <div className="d-flex align-items-center gap-2">
             <Users size={18} className="text-primary" />
-            <span>Workspace Team & RBAC Members</span>
+            <span>Workspace Team &amp; RBAC Members</span>
           </div>
         }
         subtitle="Manage operators, drivers, and accountants with scoped role permissions"
+        noPadding
         actions={
           <Button
             variant="primary"
@@ -310,6 +322,7 @@ export function SettingsTab() {
           data={users || []}
           keyExtractor={u => u.id}
           isLoading={usersLoading}
+          className="border-0 shadow-none rounded-0"
           emptyTitle="No Additional Users Found"
           emptyDescription="Create secondary user accounts for store cashiers, salesman drivers, and office staff."
           emptyActionLabel="Add Team Member"
@@ -322,6 +335,30 @@ export function SettingsTab() {
         isOpen={isUserModalOpen}
         onClose={() => setIsUserModalOpen(false)}
         onSuccess={() => refetchUsers()}
+      />
+
+      {/* Confirm Logo Removal */}
+      <ConfirmDialog
+        isOpen={confirmRemoveLogo}
+        onClose={() => setConfirmRemoveLogo(false)}
+        onConfirm={executeDeleteLogo}
+        title="Remove Company Logo"
+        message="Are you sure you want to remove your company logo from printed invoices and statements?"
+        confirmLabel="Remove Logo"
+        variant="danger"
+        isLoading={isDeleting}
+      />
+
+      {/* Confirm User Removal */}
+      <ConfirmDialog
+        isOpen={Boolean(userToDelete)}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={executeDeleteUser}
+        title="Remove Team Member"
+        message={`Are you sure you want to revoke access and remove user "${userToDelete?.name}" (${userToDelete?.email})?`}
+        confirmLabel="Remove Member"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   );
